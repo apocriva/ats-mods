@@ -1,3 +1,5 @@
+Source: https://github.com/ats-mods/ModTemplate
+
 # Against The Storm Mod Template
 
 This is a basic template for an Against the Storm mod. Because ATS is a unity game, existing mod loaders and techniques can be leveraged to easily create a mod.
