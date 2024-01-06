@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "WorkerHotkeys": {
+    "Launch Game": {
       "commandName": "Executable",
-      "executablePath": "G:\\SteamLibrary\\steamapps\\common\\Against the Storm\\Against the Storm.exe"
+      "executablePath": "$(StormPath)\\Against the Storm.exe"
     }
   }
 }
