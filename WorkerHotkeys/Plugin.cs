@@ -19,25 +19,23 @@ public class Plugin : BaseUnityPlugin
 
     private const int NUM_WORKER_SLOTS = 3;
 
-    private enum Races
-    {
-        Human,
-        Beaver,
-        Lizard,
-        Foxes,
-        Harpy
-    }
-
     public static void LogInfo(object obj) => Instance.Logger.LogInfo(obj);
     public static void LogDebug(object obj) => Instance.Logger.LogDebug(obj);
     public static void LogError(object obj) => Instance.Logger.LogError(obj);
+
+    private readonly List<string> races = [];
     
     private readonly List<ConfigEntry<KeyboardShortcut>> selectSlotShortcuts = [];
-    private readonly List<ConfigEntry<KeyboardShortcut>> selectRaceShortcuts = [];
+    private readonly Dictionary<string, ConfigEntry<KeyboardShortcut>> selectRaceShortcuts = [];
     private RacesHUD racesHud;
 
     private void Awake()
     {
+
+        Instance = this;
+        harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+        gameObject.hideFlags = HideFlags.HideAndDontSave;
+
         for (var i = 0; i < NUM_WORKER_SLOTS; ++i)
         {
             selectSlotShortcuts.Add(Config.Bind
@@ -48,20 +46,7 @@ public class Plugin : BaseUnityPlugin
             ));
         }
 
-        foreach (var race in Enum.GetValues(typeof(Races)))
-        {
-            selectRaceShortcuts.Add(Config.Bind
-            (
-                new ConfigDefinition("Races", $"Select{race}"),
-                new KeyboardShortcut(KeyCode.Keypad1 + NUM_WORKER_SLOTS + (int)race),
-                new ConfigDescription($"Hotkey to select {race}")
-            ));
-        }
-
-        Instance = this;
-        harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
         LogInfo($"Initialized!");
-        gameObject.hideFlags = HideFlags.HideAndDontSave;
     }
 
     private void Update()
@@ -87,13 +72,12 @@ public class Plugin : BaseUnityPlugin
             return GetHudSlotFromShortcutIndex(selectedIndex);
         }
 
-        selectedIndex = selectRaceShortcuts.FindIndex(item => item.Value.IsDown());
-        if (selectedIndex >= 0)
+        var selectedRace = selectRaceShortcuts.FirstOrDefault(item => item.Value.Value.IsDown()).Key;
+        if (!string.IsNullOrEmpty(selectedRace))
         {
-            var race = (Races)selectedIndex;
             return racesHud.slots.FirstOrDefault
             (
-                slot => slot.race.Name == race.ToString()
+                slot => slot.race.Name == selectedRace
                     && slot.IsRevealed()
             );
         }
@@ -118,16 +102,33 @@ public class Plugin : BaseUnityPlugin
         return null;
     }
 
+    private void OnDestroy()
+    {
+        harmony?.UnpatchSelf();
+        LogInfo($"Destroyed!");
+    }
+
+    [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
+    [HarmonyPostfix]
+    private static void OnServicesReady()
+    {
+        foreach (var race in MB.Settings.Races)
+        {
+            Instance.races.Add(race.Name);
+
+            Instance.selectRaceShortcuts.Add(race.Name, Instance.Config.Bind
+            (
+                new ConfigDefinition("Races", $"Select{race.Name}"),
+                default(KeyboardShortcut),
+                new ConfigDescription($"Hotkey to select {race.Name}")
+            ));
+        }
+    }
+
     [HarmonyPatch(typeof(RacesHUD), nameof(RacesHUD.SetUpSlots))]
     [HarmonyPostfix]
     private static void RacesHUD_AfterSetUpSlots(RacesHUD __instance)
     {
         Instance.racesHud = __instance;
-    }
-
-    private void OnDestroy()
-    {
-        harmony.UnpatchSelf();
-        LogInfo($"Destroyed!");
     }
 }
