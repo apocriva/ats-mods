@@ -6,176 +6,99 @@ using Eremite.Services;
 using Eremite.View.Popups.GameMenu;
 using UnityEngine.InputSystem;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using BepInEx.Configuration;
 using Cysharp.Threading.Tasks;
 using Eremite.Controller.Generator;
+using Eremite.Model;
+using Eremite.View.HUD;
 using Eremite.View.HUD.TradeRoutes;
 using UniRx;
 using UnityEngine;
-using UnityEngine.Yoga;
-using ConfigDefinition = BepInEx.Configuration.ConfigDefinition;
 
-namespace WorkerHotkeys
+namespace WorkerHotkeys;
+
+[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+public class Plugin : BaseUnityPlugin
 {
-    [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-    public class Plugin : BaseUnityPlugin
+    public static Plugin Instance;
+    private Harmony harmony;
+
+    private const int NUM_WORKER_SLOTS = 3;
+
+    public static void LogInfo(object obj) => Instance.Logger.LogInfo(obj);
+    public static void LogDebug(object obj) => Instance.Logger.LogDebug(obj);
+    public static void LogError(object obj) => Instance.Logger.LogError(obj);
+    
+    private static readonly List<ConfigEntry<KeyboardShortcut>> selectSlotShortcuts = [];
+    private static RacesHUD racesHud;
+
+    private void Awake()
     {
-        public static Plugin Instance;
-        private Harmony harmony;
-
-        public static void LogInfo(object obj) => Instance.Logger.LogInfo(obj);
-        public static void LogDebug(object obj) => Instance.Logger.LogDebug(obj);
-        public static void LogError(object obj) => Instance.Logger.LogError(obj);
-
-        public static PluginState State { get; private set; } = new();
-
-        private void Awake()
+        for (var i = 0; i < NUM_WORKER_SLOTS; ++i)
         {
-            Instance = this;
-            //harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+            selectSlotShortcuts.Add(Config.Bind
+            (
+                new ConfigDefinition("Hotkeys", $"SelectSlot{i + 1}"),
+                new KeyboardShortcut(KeyCode.Keypad1 + i),
+                new ConfigDescription($"Hotkey to select race in slot {i + 1}")
+            ));
         }
 
-        private static string GetSavePath()
+        Instance = this;
+        harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+        LogInfo($"Initialized!");
+        gameObject.hideFlags = HideFlags.HideAndDontSave;
+    }
+
+    private void Update()
+    {
+        if (!GameController.IsGameActive || MB.InputService.IsLocked())
+            return;
+
+        var selectedIndex = selectSlotShortcuts.FindIndex(item => item.Value.IsDown());
+        if (selectedIndex < 0)
+            return;
+
+        var slot = GetHudSlotFromShortcutIndex(selectedIndex);
+        if (GameMB.ModeService.RaceMode.Value &&
+            (slot == null || slot.race == GameMB.GameBlackboardService.PickedRace.Value))
         {
-            return Path.Combine(Serviceable.ProfilesService.GetFolderPath(), PluginInfo.PLUGIN_GUID + ".save");
+            GameMB.ModeService.Back();
         }
+        else if (slot != null)
+            racesHud.OnSlotClicked(slot);
+    }
 
-        private static void Save()
+    private RacesHUDSlot GetHudSlotFromShortcutIndex(int shortcutIndex)
+    {
+        var shortcutCheckIndex = 0;
+        foreach (var slot in racesHud.slots)
         {
-            LogDebug($"Saving to {GetSavePath()}");
-            //LogDebug($"State.SelectWorker1Hotkey binding={State.SelectWorker1Hotkey.bindings[0].path}");
-            try
+            if (slot.IsRevealed())
             {
-                //var json = JsonUtility.ToJson(State);
-                //File.WriteAllText(GetSavePath(), json);
-            }
-            catch (Exception e)
-            {
-                LogError(e.Message);
-                LogError(e.StackTrace);
-                LogError($"Error while trying to save data for mod {PluginInfo.PLUGIN_GUID}");
-            }
-        }
+                if (shortcutCheckIndex == shortcutIndex)
+                    return slot;
 
-        private static void Load()
-        {
-            try
-            {
-                /*if (File.Exists(GetSavePath()))
-                {
-                    LogInfo($"Loading from {GetSavePath()}");
-                    var json = File.ReadAllText(GetSavePath());
-                    State = JsonUtility.FromJson<PluginState>(json);
-                }*/
-            }
-            catch(Exception e)
-            {
-                LogError(e.Message);
-                LogError($"Error while trying to load data for mod {PluginInfo.PLUGIN_GUID}");
-            }
-
-            State ??= new();
-            SetupActions();
-        }
-
-        private static void Reset()
-        {
-            State = new();
-            SetupActions();
-        }
-
-        private static void SetupActions()
-        {
-            LogDebug($"SetupActions");
-
-            var config = MB.InputConfig.Get();
-            MB.InputService.Config.Disable();
-            var action = config.FindAction("SelectWorker1");
-            if (action == null)
-            {
-                LogDebug("Creating SelectWorker1 action...");
-                action = config.AddAction
-                    (
-                        name: "SelectWorker1",
-                        type: InputActionType.Button
-                    );
-                config.AddBinding("<Keyboard>/numpad1", action);
-            }
-            LogDebug($"SelectWorker1 action.path={action.bindings[0].path} action.controls.Count={action.controls.Count}");
-            foreach (var control in action.controls)
-            {
-                LogDebug($"control name={control.device.name} path={control.path}");
-            }
-            MB.InputService.Config.Enable();
-
-            LogDebug($"config has {config.actions.Count} action(s)");
-            foreach (var configAction in config.actions)
-            {
-                LogDebug($"action name={configAction.name} path={configAction.bindings[0].path}");
+                shortcutCheckIndex++;
             }
         }
 
-        [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
-        [HarmonyPostfix]
-        private static void OnStartup()
-        {
-            Load();
-            LogInfo($"{PluginInfo.PLUGIN_GUID} initialized.");
-        }
+        return null;
+    }
 
-        [HarmonyPatch(typeof(ClientPrefsService), nameof(ClientPrefsService.Save))]
-        [HarmonyPostfix]
-        private static void OnSave()
-        {
-            Save();
-        }
+    [HarmonyPatch(typeof(RacesHUD), nameof(RacesHUD.SetUpSlots))]
+    [HarmonyPostfix]
+    private static void RacesHUD_AfterSetUpSlots(RacesHUD __instance)
+    {
+        racesHud = __instance;
+    }
 
-        [HarmonyPatch(typeof(ClientPrefsService), nameof(ClientPrefsService.Reset))]
-        [HarmonyPostfix]
-        private static void OnReset()
-        {
-            Reset();
-        }
-
-        [HarmonyPatch(typeof(KeyBindingsPanel), nameof(KeyBindingsPanel.SetUpKeyboard))]
-        [HarmonyPrefix]
-        private static void KeyBindingsPanel_AddWorkerHotkeys(KeyBindingsPanel __instance)
-        {
-            __instance.SetUpSlot(State.SelectWorker1Hotkey);
-        }
-
-        [HarmonyPatch(typeof(KeyBindingSlot), nameof(KeyBindingSlot.SetUp))]
-        [HarmonyPostfix]
-        private static void KeyBindingSlot_SetUp(KeyBindingSlot __instance)
-        {
-            var action = __instance.action;
-            LogDebug($"KeyBindingSlot_SetUp action={action.name} expectedControlType={action.expectedControlType} controls.Count={action.controls.Count}");
-            foreach (var control in action.controls)
-            {
-                LogDebug($"control name={control.device.name} path={control.path}");
-            }
-        }
-
-        public static void Actions_AddCallbacks()
-        {
-            LogDebug($"Actions_AddCallbacks");
-            State.SelectWorker1Hotkey.started += OnWorker1Selected;
-            State.SelectWorker1Hotkey.performed += OnWorker1Selected;
-            State.SelectWorker1Hotkey.canceled += OnWorker1Selected;
-        }
-
-        public static void Actions_UnregisterCallbacks()
-        {
-            LogDebug($"Actions_UnregisterCallbacks");
-            State.SelectWorker1Hotkey.started -= OnWorker1Selected;
-            State.SelectWorker1Hotkey.performed -= OnWorker1Selected;
-            State.SelectWorker1Hotkey.canceled -= OnWorker1Selected;
-        }
-
-        private static void OnWorker1Selected(InputAction.CallbackContext context)
-        {
-            LogDebug($"OnWorker1Selected: {context.ToString()}");
-        }
+    private void OnDestroy()
+    {
+        harmony.UnpatchSelf();
+        LogInfo($"Destroyed!");
     }
 }
