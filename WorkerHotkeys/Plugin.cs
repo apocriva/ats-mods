@@ -2,20 +2,11 @@
 using HarmonyLib;
 using Eremite;
 using Eremite.Controller;
-using Eremite.Services;
-using Eremite.View.Popups.GameMenu;
-using UnityEngine.InputSystem;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using BepInEx.Configuration;
-using Cysharp.Threading.Tasks;
-using Eremite.Controller.Generator;
-using Eremite.Model;
 using Eremite.View.HUD;
-using Eremite.View.HUD.TradeRoutes;
-using UniRx;
 using UnityEngine;
 
 namespace WorkerHotkeys;
@@ -28,12 +19,22 @@ public class Plugin : BaseUnityPlugin
 
     private const int NUM_WORKER_SLOTS = 3;
 
+    private enum Races
+    {
+        Human,
+        Beaver,
+        Lizard,
+        Foxes,
+        Harpy
+    }
+
     public static void LogInfo(object obj) => Instance.Logger.LogInfo(obj);
     public static void LogDebug(object obj) => Instance.Logger.LogDebug(obj);
     public static void LogError(object obj) => Instance.Logger.LogError(obj);
     
-    private static readonly List<ConfigEntry<KeyboardShortcut>> selectSlotShortcuts = [];
-    private static RacesHUD racesHud;
+    private readonly List<ConfigEntry<KeyboardShortcut>> selectSlotShortcuts = [];
+    private readonly List<ConfigEntry<KeyboardShortcut>> selectRaceShortcuts = [];
+    private RacesHUD racesHud;
 
     private void Awake()
     {
@@ -41,9 +42,19 @@ public class Plugin : BaseUnityPlugin
         {
             selectSlotShortcuts.Add(Config.Bind
             (
-                new ConfigDefinition("Hotkeys", $"SelectSlot{i + 1}"),
+                new ConfigDefinition("Slots", $"SelectSlot{i + 1}"),
                 new KeyboardShortcut(KeyCode.Keypad1 + i),
                 new ConfigDescription($"Hotkey to select race in slot {i + 1}")
+            ));
+        }
+
+        foreach (var race in Enum.GetValues(typeof(Races)))
+        {
+            selectRaceShortcuts.Add(Config.Bind
+            (
+                new ConfigDefinition("Races", $"Select{race}"),
+                new KeyboardShortcut(KeyCode.Keypad1 + NUM_WORKER_SLOTS + (int)race),
+                new ConfigDescription($"Hotkey to select {race}")
             ));
         }
 
@@ -55,21 +66,39 @@ public class Plugin : BaseUnityPlugin
 
     private void Update()
     {
-        if (!GameController.IsGameActive || MB.InputService.IsLocked())
+        if (!GameController.IsGameActive || MB.InputService.IsLocked() || racesHud == null)
             return;
 
-        var selectedIndex = selectSlotShortcuts.FindIndex(item => item.Value.IsDown());
-        if (selectedIndex < 0)
+        var slot = GetKeyDownSlot();
+        if (slot == null)
             return;
 
-        var slot = GetHudSlotFromShortcutIndex(selectedIndex);
-        if (GameMB.ModeService.RaceMode.Value &&
-            (slot == null || slot.race == GameMB.GameBlackboardService.PickedRace.Value))
-        {
+        if (GameMB.ModeService.RaceMode.Value && slot.race == GameMB.GameBlackboardService.PickedRace.Value)
             GameMB.ModeService.Back();
-        }
-        else if (slot != null)
+        else
             racesHud.OnSlotClicked(slot);
+    }
+
+    private RacesHUDSlot GetKeyDownSlot()
+    {
+        var selectedIndex = selectSlotShortcuts.FindIndex(item => item.Value.IsDown());
+        if (selectedIndex >= 0)
+        {
+            return GetHudSlotFromShortcutIndex(selectedIndex);
+        }
+
+        selectedIndex = selectRaceShortcuts.FindIndex(item => item.Value.IsDown());
+        if (selectedIndex >= 0)
+        {
+            var race = (Races)selectedIndex;
+            return racesHud.slots.FirstOrDefault
+            (
+                slot => slot.race.Name == race.ToString()
+                    && slot.IsRevealed()
+            );
+        }
+
+        return null;
     }
 
     private RacesHUDSlot GetHudSlotFromShortcutIndex(int shortcutIndex)
@@ -93,7 +122,7 @@ public class Plugin : BaseUnityPlugin
     [HarmonyPostfix]
     private static void RacesHUD_AfterSetUpSlots(RacesHUD __instance)
     {
-        racesHud = __instance;
+        Instance.racesHud = __instance;
     }
 
     private void OnDestroy()
