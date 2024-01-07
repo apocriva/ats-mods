@@ -1,15 +1,15 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <AssemblyName>ModTemplate</AssemblyName>
-        <Description>Mod template for Against the Storm</Description>
+        <AssemblyName>ExtraHotkeys</AssemblyName>
+        <Description>Mod to add extra hotkeys for Against the Storm</Description>
         <Version>0.0.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Authors>apocriva</Authors>
-        <Title>Template for an Against the Storm mod.</Title>
-        <PackageProjectUrl>https://github.com/apocriva/ats-mods/tree/main/ModTemplate</PackageProjectUrl>
+        <Title>Mod to add extra hotkeys for Against the Storm.</Title>
+        <PackageProjectUrl>https://github.com/apocriva/ats-mods/tree/main/ExtraHotkeys</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
@@ -38,12 +38,12 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <Reference Include="$(StormPath)\Against the Storm_Data\Managed\Assembly-CSharp.dll" Publicize="true" />
+        <Reference Include="$(StormPath)\Against the Storm_Data\Managed\Assembly-CSharp.dll" Publicize="true" IncludeAssets="compile"/>
     </ItemGroup>
 
     <ItemGroup>
         <!--<Reference Include="Newtonsoft.Json" HintPath="$(StormPath)\Against the Storm_Data\Managed\Newtonsoft.Json.dll"/>-->
-        <!--<Reference Include="UniRx" HintPath="$(StormPath)\Against the Storm_Data\Managed\UniRx.dll"/>-->
+        <Reference Include="UniRx" HintPath="$(StormPath)\Against the Storm_Data\Managed\UniRx.dll"/>
         <!--<Reference Include="UnityEngine.UI" HintPath="$(StormPath)\Against the Storm_Data\Managed\UnityEngine.UI.dll"/>-->
         <!--<Reference Include="UnityEngine.UniTask" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\UniTask.dll"/>-->
         <!--<Reference Include="Unity.InputSystem" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Unity.InputSystem.dll"/>-->

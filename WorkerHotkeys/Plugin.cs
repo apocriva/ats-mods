@@ -46,7 +46,7 @@ public class Plugin : BaseUnityPlugin
             ));
         }
 
-        LogInfo($"Initialized!");
+        LogDebug($"Initialized!");
     }
 
     private void Update()
@@ -105,7 +105,7 @@ public class Plugin : BaseUnityPlugin
     private void OnDestroy()
     {
         harmony?.UnpatchSelf();
-        LogInfo($"Destroyed!");
+        LogDebug($"Destroyed!");
     }
 
     [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
