@@ -1,4 +1,4 @@
-﻿# Worker Hotkeys
+﻿# Extra Hotkeys
 
 A simple mod for Against the Storm which adds shortcut keys to select workers while in game.
 
