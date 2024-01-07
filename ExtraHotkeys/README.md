@@ -1,4 +1,4 @@
-# Worker Hotkeys
+# Extra Hotkeys
 
 A simple mod for Against the Storm which adds some extra shortcut keys for some menus in the game.
 
