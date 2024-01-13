@@ -6,8 +6,12 @@ using Eremite;
 using Eremite.Buildings.UI;
 using Eremite.Controller;
 using Eremite.MapObjects.UI;
+using Eremite.View.Popups.GameMenu;
 using HarmonyLib;
+using TMPro;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace ExtraHotkeys;
 
@@ -28,6 +32,8 @@ public class OverlayToggles : GameMB
     private static Dictionary<Overlays, List<Action<InputAction.CallbackContext>>> hideCallbacks = new();
     private static Dictionary<Overlays, bool> isShowing = new();
 
+    private static Toggle toggle;
+
     [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
     [HarmonyPostfix]
     private static void OnServicesReady()
@@ -45,6 +51,32 @@ public class OverlayToggles : GameMB
             hideCallbacks[overlay] = [];
             isShowing[overlay] = false;
         }
+    }
+
+    [HarmonyPatch(typeof(OptionsPopup), nameof(OptionsPopup.Initialize))]
+    [HarmonyPrefix]
+    private static void OptionsPopup_PreInitialized(OptionsPopup __instance)
+    {
+        var togglePrefab = __instance.autoTrackOrdersToggle.transform.parent.gameObject;
+
+        var toggleGameObject = Instantiate(togglePrefab);
+        var rect = toggleGameObject.transform as RectTransform;
+        rect.SetParent(togglePrefab.transform.parent);
+        rect.localScale = Vector3.one;
+        rect.localPosition = new(0, rect.localPosition.y, 0);
+        rect.localRotation = Quaternion.identity;
+        rect.SetSiblingIndex(togglePrefab.transform.GetSiblingIndex());
+
+        toggle = toggleGameObject.GetComponentInChildren<Toggle>();
+
+        toggleGameObject.GetComponentInChildren<TextMeshProUGUI>().text = "Enable Toggled Overlays";
+    }
+
+    [HarmonyPatch(typeof(OptionsPopup), nameof(OptionsPopup.SetValues))]
+    [HarmonyPostfix]
+    private static void OptionsPopup_OnSetValues()
+    {
+
     }
 
     [HarmonyPatch(typeof(GameController), nameof(Eremite.Controller.GameController.StartGame))]

@@ -25,21 +25,15 @@ namespace ExtraHotkeys
 
         private void Awake()
         {
-            try
-            {
-                Instance = this;
+            Instance = this;
 
-                harmony = new Harmony(PluginInfo.PLUGIN_GUID);
-                harmony.PatchAll(typeof(WikiHotkeys));
-                harmony.PatchAll(typeof(OverlayToggles));
-                gameObject.hideFlags = HideFlags.HideAndDontSave;
+            harmony = new Harmony(PluginInfo.PLUGIN_GUID);
+            harmony.PatchAll(typeof(OptionsExtensions));
+            harmony.PatchAll(typeof(WikiHotkeys));
+            harmony.PatchAll(typeof(OverlayToggles));
+            gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-                LogDebug($"Initialized!");
-            }
-            catch (Exception e)
-            {
-                LogError(e.ToString());
-            }
+            LogDebug($"Initialized!");
         }
 
         private void OnDestroy()
