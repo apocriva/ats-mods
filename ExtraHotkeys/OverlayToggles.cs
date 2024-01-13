@@ -91,12 +91,52 @@ public class OverlayToggles : GameMB
         return false;
     }
 
+    [HarmonyPatch(typeof(RainpunkOverlaysManager), nameof(RainpunkOverlaysManager.OnEnable))]
+    [HarmonyPrefix]
+    private static bool Rainpunk_OnEnable(RainpunkOverlaysManager __instance)
+    {
+        showCallbacks[Overlays.Rainpunk].Add(__instance.OnHighlightStarted);
+        hideCallbacks[Overlays.Rainpunk].Add(__instance.OnHighlightFinished);
+        return false;
+    }
+
+    [HarmonyPatch(typeof(RainpunkOverlaysManager), nameof(RainpunkOverlaysManager.OnDisable))]
+    [HarmonyPrefix]
+    private static bool Rainpunk_OnDisable(RainpunkOverlaysManager __instance)
+    {
+        showCallbacks[Overlays.Rainpunk].Remove(__instance.OnHighlightStarted);
+        hideCallbacks[Overlays.Rainpunk].Remove(__instance.OnHighlightFinished);
+        return false;
+    }
+
+    [HarmonyPatch(typeof(RecipesOverlaysManager), nameof(RecipesOverlaysManager.OnEnable))]
+    [HarmonyPrefix]
+    private static bool Recipe_OnEnable(RecipesOverlaysManager __instance)
+    {
+        showCallbacks[Overlays.Recipe].Add(__instance.OnHighlightStarted);
+        hideCallbacks[Overlays.Recipe].Add(__instance.OnHighlightFinished);
+        return false;
+    }
+
+    [HarmonyPatch(typeof(RecipesOverlaysManager), nameof(RecipesOverlaysManager.OnDisable))]
+    [HarmonyPrefix]
+    private static bool Recipe_OnDisable(RecipesOverlaysManager __instance)
+    {
+        showCallbacks[Overlays.Recipe].Remove(__instance.OnHighlightStarted);
+        hideCallbacks[Overlays.Recipe].Remove(__instance.OnHighlightFinished);
+        return false;
+    }
+
     private void Awake()
     {
         InputConfig.BlightOverlay.performed += OnBlightPressed;
         InputConfig.BlightOverlay.canceled += OnBlightReleased;
         InputConfig.HighlightResources.performed += OnDepositPressed;
         InputConfig.HighlightResources.canceled += OnDepositReleased;
+        InputConfig.RainpunkOverlay.performed += OnRainpunkPressed;
+        InputConfig.RainpunkOverlay.canceled += OnRainpunkReleased;
+        InputConfig.HighlightRecipes.performed += OnRecipePressed;
+        InputConfig.HighlightRecipes.canceled += OnRecipeReleased;
     }
 
     private void OnDestroy()
@@ -105,6 +145,10 @@ public class OverlayToggles : GameMB
         InputConfig.BlightOverlay.canceled -= OnBlightReleased;
         InputConfig.HighlightResources.performed -= OnDepositPressed;
         InputConfig.HighlightResources.canceled -= OnDepositReleased;
+        InputConfig.RainpunkOverlay.performed -= OnRainpunkPressed;
+        InputConfig.RainpunkOverlay.canceled -= OnRainpunkReleased;
+        InputConfig.HighlightRecipes.performed -= OnRecipePressed;
+        InputConfig.HighlightRecipes.canceled -= OnRecipeReleased;
     }
 
     private static void OnBlightPressed(InputAction.CallbackContext context)
@@ -125,6 +169,26 @@ public class OverlayToggles : GameMB
     private static void OnDepositReleased(InputAction.CallbackContext context)
     {
         OnReleased(Overlays.Deposit, context);
+    }
+
+    private static void OnRainpunkPressed(InputAction.CallbackContext context)
+    {
+        OnPressed(Overlays.Rainpunk, context);
+    }
+
+    private static void OnRainpunkReleased(InputAction.CallbackContext context)
+    {
+        OnReleased(Overlays.Rainpunk, context);
+    }
+
+    private static void OnRecipePressed(InputAction.CallbackContext context)
+    {
+        OnPressed(Overlays.Recipe, context);
+    }
+
+    private static void OnRecipeReleased(InputAction.CallbackContext context)
+    {
+        OnReleased(Overlays.Recipe, context);
     }
 
     private static void OnPressed(Overlays overlay, InputAction.CallbackContext context)
