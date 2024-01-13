@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <AssemblyName>ExtraHotkeys</AssemblyName>
         <Description>Mod to add extra hotkeys for Against the Storm</Description>
-        <Version>0.0.1</Version>
+        <Version>1.0.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Authors>apocriva</Authors>
@@ -46,7 +46,7 @@
         <Reference Include="UniRx" HintPath="$(StormPath)\Against the Storm_Data\Managed\UniRx.dll"/>
         <!--<Reference Include="UnityEngine.UI" HintPath="$(StormPath)\Against the Storm_Data\Managed\UnityEngine.UI.dll"/>-->
         <!--<Reference Include="UnityEngine.UniTask" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\UniTask.dll"/>-->
-        <!--<Reference Include="Unity.InputSystem" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Unity.InputSystem.dll"/>-->
+        <Reference Include="Unity.InputSystem" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Unity.InputSystem.dll"/>
         <!--<Reference Include="Unity.TextMeshPro" HintPath="$(StormPath)\Against the Storm_Data\Managed\Unity.TextMeshPro.dll"/>-->
         <!--<Reference Include="QFSW.QC" HintPath="$(StormPath)\Against the Storm_Data\Managed\QFSW.QC.dll"/>-->
         <!--<Reference Include="Sirenix.Serialization" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Sirenix.Serialization.dll"/>-->

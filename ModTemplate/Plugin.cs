@@ -25,13 +25,13 @@ namespace ModTemplate
             harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
             gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-            LogInfo($"Initialized!");
+            LogDebug($"Initialized!");
         }
 
         private void OnDestroy()
         {
             harmony?.UnpatchSelf();
-            LogInfo($"Destroyed!");
+            LogDebug($"Destroyed!");
         }
     }
 }
