@@ -9,6 +9,7 @@ using Eremite;
 using Eremite.Controller;
 using Eremite.View.UI.Wiki;
 using UnityEngine;
+using OptEx = OptionsExtensions.Plugin;
 
 namespace StormUX;
 
@@ -16,22 +17,25 @@ namespace StormUX;
 [BepInDependency("OptionsExtensions", "0.0.1")]
 public class Plugin : BaseUnityPlugin
 {
-    public static Plugin Instance;
-    public static GameObject GameObject => Instance.gameObject;
-    private Harmony harmony;
+    internal static Plugin Instance;
+    internal static GameObject GameObject => Instance.gameObject;
     
-    public static void LogInfo(object message) => Instance.Logger.LogInfo(message);
-    public static void LogDebug(object message) => Instance.Logger.LogDebug(message);
-    public static void LogError(object message) => Instance.Logger.LogError(message);
+    internal static void LogInfo(object message) => Instance.Logger.LogInfo(message);
+    internal static void LogDebug(object message) => Instance.Logger.LogDebug(message);
+    internal static void LogError(object message) => Instance.Logger.LogError(message);
+
+    internal static GameObject OptionsSection;
+
+    private Harmony _harmony;
 
     private void Awake()
     {
         Instance = this;
 
-        harmony = new Harmony(PluginInfo.PLUGIN_GUID);
-        harmony.PatchAll(typeof(WikiHotkeys));
-        harmony.PatchAll(typeof(OverlayToggles));
-        harmony.PatchAll(typeof(WorkerHotkeys));
+        _harmony = new Harmony(PluginInfo.PLUGIN_GUID);
+        _harmony.PatchAll(typeof(WikiHotkeys));
+        _harmony.PatchAll(typeof(OverlayToggles));
+        _harmony.PatchAll(typeof(WorkerHotkeys));
         gameObject.hideFlags = HideFlags.HideAndDontSave;
 
         LogDebug($"Initialized!");
@@ -39,7 +43,13 @@ public class Plugin : BaseUnityPlugin
 
     private void OnDestroy()
     {
-        harmony?.UnpatchSelf();
+        _harmony?.UnpatchSelf();
         LogDebug($"Destroyed!");
+    }
+
+    [OptionsExtensions.OnInitialize(1)]
+    private static void OptExInitialize()
+    {
+        OptionsSection = OptEx.CreateSection(OptEx.OptionsTabs.Gameplay, 0, "StormUX");
     }
 }

@@ -7,7 +7,7 @@ using Eremite.Controller;
 using Eremite.MapObjects.UI;
 using HarmonyLib;
 using UnityEngine.InputSystem;
-using OptExPlugin = OptionsExtensions.Plugin;
+using OptEx = OptionsExtensions.Plugin;
 
 namespace StormUX;
 
@@ -47,12 +47,12 @@ public class OverlayToggles : GameMB
         }
     }
 
-    [HarmonyPatch(typeof(OptExPlugin), nameof(OptExPlugin.Initialize))]
-    [HarmonyPostfix]
-    private static void InitializeOptions()
+    [OptionsExtensions.OnInitialize]
+    private static void OnOptExInitialize()
     {
-        OptExPlugin.CreateToggle
+        OptEx.CreateToggle
         (
+            Plugin.OptionsSection,
             "Overlay Toggling Enabled",
             () => isToggleEnabled.Value,
             newValue => isToggleEnabled.Value = newValue
