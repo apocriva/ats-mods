@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using BepInEx.Configuration;
 using Eremite;
 using Eremite.Buildings.UI;
 using Eremite.Controller;
 using Eremite.MapObjects.UI;
-using Eremite.View.Popups.GameMenu;
 using HarmonyLib;
-using TMPro;
-using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
+using OptExPlugin = OptionsExtensions.Plugin;
 
 namespace ExtraHotkeys;
 
@@ -51,11 +47,11 @@ public class OverlayToggles : GameMB
         }
     }
 
-    [HarmonyPatch(typeof(OptionsExtensions), nameof(OptionsExtensions.Initialize))]
+    [HarmonyPatch(typeof(OptExPlugin), nameof(OptExPlugin.Initialize))]
     [HarmonyPostfix]
     private static void InitializeOptions()
     {
-        OptionsExtensions.CreateToggle
+        OptExPlugin.CreateToggle
         (
             "Overlay Toggling Enabled",
             () => isToggleEnabled.Value,

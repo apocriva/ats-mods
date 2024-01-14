@@ -13,6 +13,7 @@ using UnityEngine;
 namespace ExtraHotkeys
 {
     [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+    [BepInDependency("OptionsExtensions", "0.0.1")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin Instance;
@@ -28,7 +29,7 @@ namespace ExtraHotkeys
             Instance = this;
 
             harmony = new Harmony(PluginInfo.PLUGIN_GUID);
-            harmony.PatchAll(typeof(OptionsExtensions));
+            //harmony.PatchAll(typeof(OptionsExtensions));
             harmony.PatchAll(typeof(WikiHotkeys));
             harmony.PatchAll(typeof(OverlayToggles));
             gameObject.hideFlags = HideFlags.HideAndDontSave;

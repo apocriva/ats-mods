@@ -1,20 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Eremite;
-using Eremite.View.Popups.GameMenu;
+﻿using BepInEx;
 using HarmonyLib;
+using Eremite;
+using Eremite.Controller;
+using UnityEngine;
+using Eremite.View.Popups.GameMenu;
+using System.Collections.Generic;
+using System;
 using TMPro;
 using UniRx;
-using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.UIElements;
-using Toggle = UnityEngine.UI.Toggle;
 
-namespace ExtraHotkeys;
+namespace OptionsExtensions;
 
-public static class OptionsExtensions
+[BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
+public class Plugin : BaseUnityPlugin
 {
     public enum OptionsTabs
     {
@@ -24,7 +23,6 @@ public static class OptionsExtensions
         //Keybinds
     }
 
-    private static GameObject modOptionsSection;
     public static GameObject ModOptionsSection
     {
         get
@@ -34,6 +32,16 @@ public static class OptionsExtensions
             return modOptionsSection;
         }
     }
+
+    internal static Plugin Instance;
+    
+    internal static void LogInfo(object message) => Instance.Logger.LogInfo(message);
+    internal static void LogDebug(object message) => Instance.Logger.LogDebug(message);
+    internal static void LogError(object message) => Instance.Logger.LogError(message);
+
+    private Harmony harmony;
+
+    private static GameObject modOptionsSection;
 
     private const string HEADER_PATH = "Header";
 
@@ -57,6 +65,21 @@ public static class OptionsExtensions
 
     private static List<ToggleInfo> toggles = [];
 
+    private void Awake()
+    {
+        Instance = this;
+        harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
+        gameObject.hideFlags = HideFlags.HideAndDontSave;
+
+        LogDebug($"Initialized!");
+    }
+
+    private void OnDestroy()
+    {
+        harmony?.UnpatchSelf();
+        LogDebug($"Destroyed!");
+    }
+
     public static GameObject CreateToggle(string label, Func<bool> getValue, Action<bool> setValue)
     {
         return CreateToggle(ModOptionsSection, label, getValue, setValue);
@@ -64,7 +87,7 @@ public static class OptionsExtensions
 
     public static GameObject CreateToggle(GameObject parentSection, string label, Func<bool> getValue, Action<bool> setValue, int siblingIndex = -1)
     {
-        var go = UnityEngine.Object.Instantiate(togglePrefab);
+        var go = Instantiate(togglePrefab);
         var rect = go.transform as RectTransform;
         rect.SetParent(parentSection.transform);
         rect.localScale = Vector3.one;
@@ -83,7 +106,7 @@ public static class OptionsExtensions
 
     public static GameObject CreateSection(OptionsTabs tab, int index, string title)
     {
-        var newPanelGameObject = UnityEngine.Object.Instantiate(optionsSectionPrefab);
+        var newPanelGameObject = Instantiate(optionsSectionPrefab);
         var rect = newPanelGameObject.transform as RectTransform;
         rect.SetParent(optionsSectionPrefab.transform.parent, true);
         rect.localPosition = new(0f, rect.localPosition.y, 0);
@@ -106,7 +129,7 @@ public static class OptionsExtensions
 
     [HarmonyPatch(typeof(OptionsPopup), nameof(OptionsPopup.Initialize))]
     [HarmonyPrefix]
-    internal static void Initialize(OptionsPopup __instance)
+    public static void Initialize(OptionsPopup __instance)
     {
         ClearRegistry();
         CollectPrefabs(__instance);

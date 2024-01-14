@@ -2,14 +2,14 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <AssemblyName>ExtraHotkeys</AssemblyName>
-        <Description>Mod to add extra hotkeys for Against the Storm</Description>
-        <Version>1.1.0</Version>
+        <AssemblyName>OptionsExtensions</AssemblyName>
+        <Description>Mod for Against the Storm to extend the options panel.</Description>
+        <Version>0.0.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <Authors>apocriva</Authors>
-        <Title>Mod to add extra hotkeys for Against the Storm.</Title>
-        <PackageProjectUrl>https://github.com/apocriva/ats-mods/tree/main/ExtraHotkeys</PackageProjectUrl>
+        <Title>Options Extensions for Against the Storm</Title>
+        <PackageProjectUrl>https://github.com/apocriva/ats-mods/tree/main/OptionsExtensions</PackageProjectUrl>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <Configurations>Debug;Release</Configurations>
     </PropertyGroup>
@@ -38,16 +38,16 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <Reference Include="$(StormPath)\Against the Storm_Data\Managed\Assembly-CSharp.dll" Publicize="true" IncludeAssets="compile" />
+        <Reference Include="$(StormPath)\Against the Storm_Data\Managed\Assembly-CSharp.dll" Publicize="true" />
     </ItemGroup>
 
     <ItemGroup>
         <!--<Reference Include="Newtonsoft.Json" HintPath="$(StormPath)\Against the Storm_Data\Managed\Newtonsoft.Json.dll"/>-->
-        <Reference Include="UniRx" HintPath="$(StormPath)\Against the Storm_Data\Managed\UniRx.dll" />
-        <Reference Include="UnityEngine.UI" HintPath="$(StormPath)\Against the Storm_Data\Managed\UnityEngine.UI.dll" />
+        <Reference Include="UniRx" HintPath="$(StormPath)\Against the Storm_Data\Managed\UniRx.dll"/>
+        <Reference Include="UnityEngine.UI" HintPath="$(StormPath)\Against the Storm_Data\Managed\UnityEngine.UI.dll"/>
         <!--<Reference Include="UnityEngine.UniTask" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\UniTask.dll"/>-->
-        <Reference Include="Unity.InputSystem" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Unity.InputSystem.dll" />
-        <Reference Include="Unity.TextMeshPro" HintPath="$(StormPath)\Against the Storm_Data\Managed\Unity.TextMeshPro.dll" />
+        <Reference Include="Unity.InputSystem" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Unity.InputSystem.dll"/>
+        <Reference Include="Unity.TextMeshPro" HintPath="$(StormPath)\Against the Storm_Data\Managed\Unity.TextMeshPro.dll"/>
         <!--<Reference Include="QFSW.QC" HintPath="$(StormPath)\Against the Storm_Data\Managed\QFSW.QC.dll"/>-->
         <!--<Reference Include="Sirenix.Serialization" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Sirenix.Serialization.dll"/>-->
     </ItemGroup>
@@ -60,10 +60,6 @@
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
         <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\OptionsExtensions\OptionsExtensions.csproj" />
     </ItemGroup>
 
     <ItemGroup>
