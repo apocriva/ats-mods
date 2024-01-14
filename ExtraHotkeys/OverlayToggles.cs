@@ -32,8 +32,6 @@ public class OverlayToggles : GameMB
     private static Dictionary<Overlays, List<Action<InputAction.CallbackContext>>> hideCallbacks = new();
     private static Dictionary<Overlays, bool> isShowing = new();
 
-    private static Toggle toggle;
-
     [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
     [HarmonyPostfix]
     private static void OnServicesReady()
@@ -53,30 +51,16 @@ public class OverlayToggles : GameMB
         }
     }
 
-    [HarmonyPatch(typeof(OptionsPopup), nameof(OptionsPopup.Initialize))]
-    [HarmonyPrefix]
-    private static void OptionsPopup_PreInitialized(OptionsPopup __instance)
-    {
-        var togglePrefab = __instance.autoTrackOrdersToggle.transform.parent.gameObject;
-
-        var toggleGameObject = Instantiate(togglePrefab);
-        var rect = toggleGameObject.transform as RectTransform;
-        rect.SetParent(togglePrefab.transform.parent);
-        rect.localScale = Vector3.one;
-        rect.localPosition = new(0, rect.localPosition.y, 0);
-        rect.localRotation = Quaternion.identity;
-        rect.SetSiblingIndex(togglePrefab.transform.GetSiblingIndex());
-
-        toggle = toggleGameObject.GetComponentInChildren<Toggle>();
-
-        toggleGameObject.GetComponentInChildren<TextMeshProUGUI>().text = "Enable Toggled Overlays";
-    }
-
-    [HarmonyPatch(typeof(OptionsPopup), nameof(OptionsPopup.SetValues))]
+    [HarmonyPatch(typeof(OptionsExtensions), nameof(OptionsExtensions.Initialize))]
     [HarmonyPostfix]
-    private static void OptionsPopup_OnSetValues()
+    private static void InitializeOptions()
     {
-
+        OptionsExtensions.CreateToggle
+        (
+            "Overlay Toggling Enabled",
+            () => isToggleEnabled.Value,
+            newValue => isToggleEnabled.Value = newValue
+        );
     }
 
     [HarmonyPatch(typeof(GameController), nameof(Eremite.Controller.GameController.StartGame))]
@@ -120,6 +104,24 @@ public class OverlayToggles : GameMB
     {
         showCallbacks[Overlays.Deposit].Remove(__instance.HighlightAllInput);
         hideCallbacks[Overlays.Deposit].Remove(__instance.UnhighlightAllInput);
+        return false;
+    }
+
+    [HarmonyPatch(typeof(OreIndicatorsController), nameof(OreIndicatorsController.OnEnable))]
+    [HarmonyPrefix]
+    private static bool Ore_OnEnable(OreIndicatorsController __instance)
+    {
+        showCallbacks[Overlays.Deposit].Add(__instance.HighlightAll);
+        hideCallbacks[Overlays.Deposit].Add(__instance.UnhighlightAll);
+        return false;
+    }
+
+    [HarmonyPatch(typeof(OreIndicatorsController), nameof(OreIndicatorsController.OnDisable))]
+    [HarmonyPrefix]
+    private static bool Ore_OnDisable(OreIndicatorsController __instance)
+    {
+        showCallbacks[Overlays.Deposit].Remove(__instance.HighlightAll);
+        hideCallbacks[Overlays.Deposit].Remove(__instance.UnhighlightAll);
         return false;
     }
 
