@@ -24,7 +24,16 @@ public static class OptionsExtensions
         //Keybinds
     }
 
-    public static GameObject ModOptionsSection { get; private set; }
+    private static GameObject modOptionsSection;
+    public static GameObject ModOptionsSection
+    {
+        get
+        {
+            if (modOptionsSection == null)
+                modOptionsSection = CreateSection(OptionsTabs.General, 0, "Mod Options");
+            return modOptionsSection;
+        }
+    }
 
     private const string HEADER_PATH = "Header";
 
@@ -50,10 +59,10 @@ public static class OptionsExtensions
 
     public static GameObject CreateToggle(string label, Func<bool> getValue, Action<bool> setValue)
     {
-        return CreateToggle(ModOptionsSection, label, getValue, setValue, -1);
+        return CreateToggle(ModOptionsSection, label, getValue, setValue);
     }
 
-    public static GameObject CreateToggle(GameObject parentSection, string label, Func<bool> getValue, Action<bool> setValue, int siblingIndex)
+    public static GameObject CreateToggle(GameObject parentSection, string label, Func<bool> getValue, Action<bool> setValue, int siblingIndex = -1)
     {
         var go = UnityEngine.Object.Instantiate(togglePrefab);
         var rect = go.transform as RectTransform;
@@ -102,7 +111,6 @@ public static class OptionsExtensions
         ClearRegistry();
         CollectPrefabs(__instance);
         optionsSectionPrefab = __instance.transform.Find(__instance.VolumePath).gameObject;
-        ModOptionsSection = CreateSection(OptionsTabs.General, 0, "Mod Options");
     }
 
     private static void ClearRegistry()
