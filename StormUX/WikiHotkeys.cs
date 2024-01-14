@@ -9,7 +9,7 @@ using Eremite.View.UI.Wiki;
 using HarmonyLib;
 using UnityEngine;
 
-namespace ExtraHotkeys;
+namespace StormUX;
 
 public class WikiHotkeys : GameMB
 {

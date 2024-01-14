@@ -9,7 +9,7 @@ using HarmonyLib;
 using UnityEngine.InputSystem;
 using OptExPlugin = OptionsExtensions.Plugin;
 
-namespace ExtraHotkeys;
+namespace StormUX;
 
 public class OverlayToggles : GameMB
 {
