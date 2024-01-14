@@ -25,7 +25,7 @@ public class WikiHotkeys : GameMB
         Traders,
         Races
     }
-    private Dictionary<WikiPanels, ConfigEntry<KeyboardShortcut>> wikiShortcuts = new();
+    private static Dictionary<WikiPanels, ConfigEntry<KeyboardShortcut>> wikiShortcuts = new();
 
     private WikiPopup wikiPopup;
     private WikiBasicPanel wikiBasicPanel;
@@ -66,40 +66,37 @@ public class WikiHotkeys : GameMB
         }
     }
 
-    private void Awake()
-    {
-        SetupShortcuts();
-    }
-
-    private void SetupShortcuts()
+    [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
+    [HarmonyPostfix]
+    private static void SetupShortcuts()
     {
         wikiShortcuts[WikiPanels.Basic] = Config.Bind
         (
-            new ConfigDefinition("Wiki", "Basic"),
+            new ConfigDefinition("WikiHotkeys", "Basic"),
             new KeyboardShortcut(KeyCode.F1),
             new ConfigDescription("Hotkey to open Encyclopedia -> Basic")
         );
         wikiShortcuts[WikiPanels.Buildings] = Config.Bind
         (
-            new ConfigDefinition("Wiki", "Buildings"),
+            new ConfigDefinition("WikiHotkeys", "Buildings"),
             new KeyboardShortcut(KeyCode.F2),
             new ConfigDescription("Hotkey to open Encyclopedia -> Buildings")
         );
         wikiShortcuts[WikiPanels.Effects] = Config.Bind
         (
-            new ConfigDefinition("Wiki", "Effects"),
+            new ConfigDefinition("WikiHotkeys", "Effects"),
             new KeyboardShortcut(KeyCode.F3),
             new ConfigDescription("Hotkey to open Encyclopedia -> Effects")
         );
         wikiShortcuts[WikiPanels.Traders] = Config.Bind
         (
-            new ConfigDefinition("Wiki", "Traders"),
+            new ConfigDefinition("WikiHotkeys", "Traders"),
             new KeyboardShortcut(KeyCode.F4),
             new ConfigDescription("Hotkey to open Encyclopedia -> Traders")
         );
         wikiShortcuts[WikiPanels.Races] = Config.Bind
         (
-            new ConfigDefinition("Wiki", "Races"),
+            new ConfigDefinition("WikiHotkeys", "Races"),
             new KeyboardShortcut(KeyCode.F5),
             new ConfigDescription("Hotkey to open Encyclopedia -> Races")
         );

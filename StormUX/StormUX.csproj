@@ -49,7 +49,7 @@
         <Reference Include="Unity.InputSystem" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Unity.InputSystem.dll" />
         <Reference Include="Unity.TextMeshPro" HintPath="$(StormPath)\Against the Storm_Data\Managed\Unity.TextMeshPro.dll" />
         <!--<Reference Include="QFSW.QC" HintPath="$(StormPath)\Against the Storm_Data\Managed\QFSW.QC.dll"/>-->
-        <!--<Reference Include="Sirenix.Serialization" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Sirenix.Serialization.dll"/>-->
+        <Reference Include="Sirenix.Serialization" HintPath="$(StormPath)\\Against the Storm_Data\\Managed\\Sirenix.Serialization.dll"/>
     </ItemGroup>
 
     <ItemGroup>

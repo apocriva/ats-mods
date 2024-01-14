@@ -31,7 +31,6 @@ public class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-
         Instance = this;
         harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
         gameObject.hideFlags = HideFlags.HideAndDontSave;

@@ -29,9 +29,9 @@ public class Plugin : BaseUnityPlugin
         Instance = this;
 
         harmony = new Harmony(PluginInfo.PLUGIN_GUID);
-        //harmony.PatchAll(typeof(OptionsExtensions));
         harmony.PatchAll(typeof(WikiHotkeys));
         harmony.PatchAll(typeof(OverlayToggles));
+        harmony.PatchAll(typeof(WorkerHotkeys));
         gameObject.hideFlags = HideFlags.HideAndDontSave;
 
         LogDebug($"Initialized!");
