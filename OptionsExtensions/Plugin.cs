@@ -12,13 +12,16 @@ using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using ConfigurationManager;
 using Cysharp.Threading.Tasks;
+using Eremite.Services;
 using TMPro;
 using UniRx;
 using Unity.Profiling;
 using UnityEngine.Assertions;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Object = System.Object;
 
 namespace OptionsExtensions;
 
@@ -79,12 +82,12 @@ public class Plugin : BaseUnityPlugin
     private static GameObject _optionsSectionPrefab; // child 0: SectionBG, child 1: Header
     private static GameObject _buttonPrefab;
     private static GameObject _togglePrefab;
-    private static GameObject _keyBindingSlotPrefab;
+
+    private static ConfigurationManager.ConfigurationManager _configurationManager;
 
     private static GameObject _inputBlocker;
     private static OptionsPopup _optionsPopup;
     private static KeyBindingsPanel _keyBindingsPanel;
-    private static Action<InputAction> _keyBindingsPanelOnChangeRequested;
 
     private class ControlInfo<TControl, TValue>(TControl control, Func<TValue> getValue, Action<TValue> setValue)
     {
@@ -122,35 +125,6 @@ public class Plugin : BaseUnityPlugin
         button.GetComponentInChildren<TMP_Text>().text = label;
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(new UnityAction(onClick));
-
-        return go;
-    }
-
-    public static GameObject CreateKeyBindingSlot(string label, Func<KeyboardShortcut> getValue, Action<KeyboardShortcut> setValue)
-    {
-        return CreateKeyBindingSlot(ModKeyBindingsSection, label, getValue, setValue);
-    }
-
-    public static GameObject CreateKeyBindingSlot(GameObject parentSection, string label, Func<KeyboardShortcut> getValue, Action<KeyboardShortcut> setValue, int siblingIndex = -1)
-    {
-        var go = Instantiate(_keyBindingSlotPrefab);
-        go.name = "OptExBindingSlot";
-        Destroy(go.GetComponent<KeyBindingSlot>());
-
-        var rect = go.transform as RectTransform;
-        if (rect == null)
-            throw new ArgumentException("Specified KeyBindingSlot slot prefab does not have RectTransform");
-
-        rect.SetParent(parentSection.transform);
-        rect.localScale = Vector3.one;
-        rect.localPosition = new(0, rect.localPosition.y, 0);
-        rect.localRotation = Quaternion.identity;
-        if (siblingIndex > 0)
-            rect.SetSiblingIndex(siblingIndex);
-
-        var control = go.AddComponent<BindingSlot>();
-        control.SetUp(label);
-        KeyBindingSlots.Add(new ControlInfo<BindingSlot, KeyboardShortcut>(control, getValue, setValue));
 
         return go;
     }
@@ -217,6 +191,12 @@ public class Plugin : BaseUnityPlugin
         _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
         gameObject.hideFlags = HideFlags.HideAndDontSave;
 
+        if (Chainloader.PluginInfos.TryGetValue("com.bepis.bepinex.configurationmanager", out var info))
+        {
+            _configurationManager = info.Instance as ConfigurationManager.ConfigurationManager;
+            _configurationManager!.DisplayingWindowChanged += OnConfigurationManagerWindowChanged;
+        }
+
         LogDebug($"Initialized!");
     }
 
@@ -234,15 +214,11 @@ public class Plugin : BaseUnityPlugin
         CollectPrefabs(__instance);
         _optionsSectionPrefab = __instance.transform.Find(__instance.VolumePath).gameObject;
 
-        if (Chainloader.PluginInfos.TryGetValue("com.bepis.bepinex.configurationmanager", out var info))
+        if (_configurationManager != null)
         {
-            var confman = info.Instance as ConfigurationManager.ConfigurationManager;
-            confman.DisplayingWindowChanged += OnConfigurationManagerWindowChanged;
-
             CreateButton("Open Configuration Manager", () =>
             {
-                var confman = info.Instance as ConfigurationManager.ConfigurationManager;
-                confman.DisplayingWindow = !confman.DisplayingWindow;
+                 _configurationManager.DisplayingWindow = true;
             });
         }
 
@@ -270,17 +246,6 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
-    private static void PrepareInputBlocker()
-    {
-        //_inputBlocker = new GameObject("OptExInputBlocker", typeof(RectTransform), typeof(Button));
-        //var rect = _inputBlocker.GetRectTransform();
-        //rect.SetParent(_optionsPopup.transform, true);
-        //rect.SetSiblingIndex(0);
-        //rect.SetAnchor(AnchorPresets.FullStrech);
-        //_inputBlocker.SetActive(true);
-        //_inputBlocker.GetComponent<Button>().interactable = true;
-    }
-
     private static void ClearControlRegistry()
     {
         Toggles.Clear();
@@ -296,8 +261,8 @@ public class Plugin : BaseUnityPlugin
         _keyBindingsPanel = __instance.content.Find("KeyBindingsContent/Keyboard").GetComponent<KeyBindingsPanel>();
         if (_keyBindingsPanel != null)
         {
-            _keyBindingsPanelOnChangeRequested = _keyBindingsPanel.OnChangeRequested;
-            _keyBindingSlotPrefab = _keyBindingsPanel.slots[0].gameObject;
+            // This button has a material with _Stencil and works in the scroll view
+            _buttonPrefab = _keyBindingsPanel.slots[0].gameObject.transform.Find("Button").gameObject;
         }
         else
         {
@@ -336,33 +301,39 @@ public class Plugin : BaseUnityPlugin
             i.Control.OnValueChangedAsObservable().Subscribe(i.SetValue).AddTo(_optionsPopup);
             i.IsInitialized = true;
         }
-
-        foreach (var i in KeyBindingSlots.Where(i => !i.IsInitialized))
-        {
-            i.Control.SetData(i.GetValue(), i, ShowBindingCallback);
-            i.IsInitialized = true;
-        }
-    }
-
-    private static void ShowBindingCallback(object o)
-    {
-        ShowKeyBindingPrompt((ControlInfo<BindingSlot, KeyboardShortcut>)o).Forget();
-    }
-
-    private static async UniTaskVoid ShowKeyBindingPrompt(ControlInfo<BindingSlot, KeyboardShortcut> control)
-    {
-        //_keyBindingsPanel.DisableInput();
-        //var inputAction = control.GetValue();
-        //if (await _keyBindingsPanel.prompt.Show(inputAction))
-        //    control.SetValue(inputAction);
-        //_keyBindingsPanel.EnableInput();
     }
 
     private static void OnConfigurationManagerWindowChanged(object context, ValueChangedEventArgs<bool> isVisible)
     {
         if (isVisible.NewValue)
-            _optionsPopup.blend.SetActive(true);
+            DisableGameInput();
         else
-            _optionsPopup.blend.SetActive(false);
+            EnableGameInput();
+    }
+
+    private static void EnableGameInput()
+    {
+        foreach (var i in FindObjectsOfType<GraphicRaycaster>())
+            i.enabled = true;
+
+        Serviceable.InputService.ReleaseInput(Instance);
+        if (GameMB.IsGameActive)
+        {
+            GameMB.GameController.CameraController.MovementLock.Release(Instance);
+            GameMB.GameController.CameraController.ZoomLock.Release(Instance);
+        }
+    }
+
+    private static void DisableGameInput()
+    {
+        foreach (var i in FindObjectsOfType<GraphicRaycaster>())
+            i.enabled = false;
+
+        Serviceable.InputService.LockInput(Instance);
+        if (GameMB.IsGameActive)
+        {
+            GameMB.GameController.CameraController.MovementLock.Lock(Instance);
+            GameMB.GameController.CameraController.ZoomLock.Lock(Instance);
+        }
     }
 }

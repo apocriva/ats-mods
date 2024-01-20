@@ -59,16 +59,6 @@ public class OverlayToggles : GameMB
             () => isToggleEnabled.Value,
             newValue => isToggleEnabled.Value = newValue
         );
-
-        //OptEx.CreateKeyBindingSlot
-        //(
-        //    "Test Keybind",
-        //    () => _testShortcut,
-        //    newValue =>
-        //    {
-        //        Plugin.LogDebug(_testShortcut.ToString());
-        //    }
-        //);
     }
 
     [HarmonyPatch(typeof(GameController), nameof(Eremite.Controller.GameController.StartGame))]
