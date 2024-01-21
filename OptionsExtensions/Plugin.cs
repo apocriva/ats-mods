@@ -9,26 +9,25 @@ using System;
 using System.Linq;
 using System.Reflection;
 using BepInEx.Bootstrap;
-using BepInEx.Configuration;
 using ConfigurationManager;
-using Cysharp.Threading.Tasks;
 using Eremite.Services;
 using TMPro;
 using UniRx;
-using Unity.Profiling;
-using UnityEngine.Assertions;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
-using Object = System.Object;
 
 namespace OptionsExtensions;
 
+/// <summary>
+/// Provides some utilities for modifying/extending the Against the Storm options menu
+/// </summary>
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 [BepInDependency("com.bepis.bepinex.configurationmanager", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
+    /// <summary>
+    /// There's also a Twitch tab, but does it need new controls?
+    /// </summary>
     public enum OptionsTabs
     {
         General,
@@ -37,6 +36,10 @@ public class Plugin : BaseUnityPlugin
         Keybinds
     }
 
+    /// <summary>
+    /// An options section which is at the top of the General tab. Newly-created
+    /// controls will go here by default unless otherwise specified.
+    /// </summary>
     public static GameObject ModOptionsSection
     {
         get
@@ -47,6 +50,9 @@ public class Plugin : BaseUnityPlugin
         }
     }
 
+    /// <summary>
+    /// A general section in the Key Bindings tab. Key bindings not currently supported!
+    /// </summary>
     public static GameObject ModKeyBindingsSection
     {
         get
@@ -81,6 +87,7 @@ public class Plugin : BaseUnityPlugin
 
     private static GameObject _optionsSectionPrefab; // child 0: SectionBG, child 1: Header
     private static GameObject _buttonPrefab;
+    private static GameObject _sliderPrefab;
     private static GameObject _togglePrefab;
 
     private static ConfigurationManager.ConfigurationManager _configurationManager;
@@ -96,27 +103,32 @@ public class Plugin : BaseUnityPlugin
         public readonly Action<TValue> SetValue = setValue;
         public bool IsInitialized;
     }
-
-    private static readonly List<ControlInfo<BindingSlot, KeyboardShortcut>> KeyBindingSlots = [];
+    
+    private static readonly List<ControlInfo<Slider, float>> Sliders = [];
     private static readonly List<ControlInfo<Toggle, bool>> Toggles = [];
 
+    /// <summary>
+    /// <inheritdoc cref="CreateButton(GameObject,string,Action,int)"/>
+    /// Control is placed under <see cref="ModOptionsSection"/>.
+    /// </summary>
     public static GameObject CreateButton(string label, Action onClick)
     {
         return CreateButton(ModOptionsSection, label, onClick);
     }
 
+    /// <summary>
+    /// Creates a button with the provided settings.
+    /// Specifying a sibling index of less than 2 will disturb the section layout.
+    /// </summary>
     public static GameObject CreateButton(GameObject parentSection, string label, Action onClick, int siblingIndex = -1)
     {
+        // TODO: Fix button stretching.
         var go = Instantiate(_buttonPrefab);
-        go.name = "OptExButton";
-
-        var rect = go.transform as RectTransform;
-        if (rect == null)
-            throw new ArgumentException("Specified KeyBindingSlot slot prefab does not have RectTransform");
-
+        go.name = "Button";
+        var rect = go.GetRectTransform();
         rect.SetParent(parentSection.transform);
         rect.localScale = Vector3.one;
-        rect.localPosition = new(0, rect.localPosition.y, 0);
+        rect.localPosition = Vector3.zero;
         rect.localRotation = Quaternion.identity;
         if (siblingIndex > 0)
             rect.SetSiblingIndex(siblingIndex);
@@ -128,12 +140,56 @@ public class Plugin : BaseUnityPlugin
 
         return go;
     }
+    
+    /// <summary>
+    /// <inheritdoc cref="CreateSlider(GameObject,string,Func{float},Action{float},int)"/>
+    /// Control is placed under <see cref="ModOptionsSection"/>.
+    /// </summary>
+    public static GameObject CreateSlider(string label, Func<float> getValue, Action<float> setValue)
+    {
+        return CreateSlider(ModOptionsSection, label, getValue, setValue);
+    }
+    
+    /// <summary>
+    /// Creates a slider with the provided settings.
+    /// Specifying a sibling index of less than 2 will disturb the section layout.
+    /// </summary>
+    public static GameObject CreateSlider(GameObject parentSection, string label, Func<float> getValue, Action<float> setValue, int siblingIndex = -1)
+    {
+        var go = Instantiate(_sliderPrefab);
+        go.name = "OptExSlider";
+        var rect = go.transform as RectTransform;
+        if (rect == null)
+            throw new ArgumentException("Specified Slider prefab does not have RectTransform");
 
+        rect.SetParent(parentSection.transform);
+        rect.localScale = Vector3.one;
+        rect.localPosition = new(0, rect.localPosition.y, 0);
+        rect.localRotation = Quaternion.identity;
+        if (siblingIndex > 0)
+            rect.SetSiblingIndex(siblingIndex);
+
+        var control = go.GetComponentInChildren<Slider>();
+        Sliders.Add(new ControlInfo<Slider, float>(control, getValue, setValue));
+
+        go.GetComponentInChildren<TextMeshProUGUI>().text = label;
+
+        return go;
+    }
+
+    /// <summary>
+    /// <inheritdoc cref="CreateToggle(GameObject,string,Func{bool},Action{bool},int)"/>
+    /// Control is placed under <see cref="ModOptionsSection"/>.
+    /// </summary>
     public static GameObject CreateToggle(string label, Func<bool> getValue, Action<bool> setValue)
     {
         return CreateToggle(ModOptionsSection, label, getValue, setValue);
     }
 
+    /// <summary>
+    /// Creates a toggle with the provided settings.
+    /// Specifying a sibling index of less than 2 will disturb the section layout.
+    /// </summary>
     public static GameObject CreateToggle(GameObject parentSection, string label, Func<bool> getValue, Action<bool> setValue, int siblingIndex = -1)
     {
         var go = Instantiate(_togglePrefab);
@@ -157,6 +213,10 @@ public class Plugin : BaseUnityPlugin
         return go;
     }
 
+    /// <summary>
+    /// Creates a section in the specified options tab. Controls can be added to
+    /// this new section by passing it into the various Create*() methods.
+    /// </summary>
     public static GameObject CreateSection(OptionsTabs tab, int index, string title)
     {
         var go = Instantiate(_optionsSectionPrefab);
@@ -171,6 +231,8 @@ public class Plugin : BaseUnityPlugin
         rect.localScale = Vector3.one;
         rect.localRotation = Quaternion.identity;
         rect.transform.SetSiblingIndex(index);
+
+        _modOptionsSection?.transform.SetAsFirstSibling();
 
         // Delete unnecessary children.
         for (var i = rect.childCount - 1; i > 1; i--)
@@ -256,6 +318,7 @@ public class Plugin : BaseUnityPlugin
         _optionsPopup = __instance;
 
         _buttonPrefab = __instance.resetButton.gameObject;
+        _sliderPrefab = __instance.cameraMouseSensitivitySlider.transform.parent.gameObject;
         _togglePrefab = __instance.autoTrackOrdersToggle.transform.parent.gameObject;
 
         _keyBindingsPanel = __instance.content.Find("KeyBindingsContent/Keyboard").GetComponent<KeyBindingsPanel>();
@@ -274,10 +337,11 @@ public class Plugin : BaseUnityPlugin
     [HarmonyPostfix]
     private static void OptionsPopup_SetValues()
     {
+        foreach (var i in Sliders)
+            i.Control.value = i.GetValue();
+
         foreach (var i in Toggles)
-        {
             i.Control.isOn = i.GetValue();
-        }
     }
 
     [HarmonyPatch(typeof(OptionsPopup), nameof(OptionsPopup.SetUpInputs))]
@@ -296,6 +360,12 @@ public class Plugin : BaseUnityPlugin
 
     private static void SetUpControls()
     {
+        foreach (var i in Sliders.Where(i => !i.IsInitialized))
+        {
+            i.Control.OnValueChangedAsObservable().Subscribe(i.SetValue).AddTo(_optionsPopup);
+            i.IsInitialized = true;
+        }
+
         foreach (var i in Toggles.Where(i => !i.IsInitialized))
         {
             i.Control.OnValueChangedAsObservable().Subscribe(i.SetValue).AddTo(_optionsPopup);

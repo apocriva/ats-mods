@@ -28,8 +28,6 @@ public class OverlayToggles : GameMB
     private static Dictionary<Overlays, List<Action<InputAction.CallbackContext>>> hideCallbacks = new();
     private static Dictionary<Overlays, bool> isShowing = new();
 
-    private static KeyboardShortcut _testShortcut;
-
     [HarmonyPatch(typeof(MainController), nameof(MainController.OnServicesReady))]
     [HarmonyPostfix]
     private static void OnServicesReady()

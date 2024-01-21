@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Launch Game": {
-      "commandName": "Executable",
-      "executablePath": "$(StormPath)\\Against the Storm.exe"
-    }
-  }
-}

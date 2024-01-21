@@ -1,12 +1,25 @@
-# Extra Hotkeys
+Source: https://github.com/ats-mods/StormUX
 
-A simple mod for Against the Storm which adds some extra shortcut keys for some menus in the game.
+# Against the Storm: StormUX
 
-Currently supports:
-* Encyclopedia menu. (Hotkey for each tab.)
+A mod for Against the Storm that adds a few user experience changes.
+* Configurable hotkeys for:
+	* Encyclopedia menu. (Hotkey for each tab, default F1 through F5)
+	* Select worker by slot (default Numpad 1 through 3) or by race (default unbound)
 
-Requires [BepInEx](https://github.com/BepInEx).
+# Installation
 
-Extract `ExtraHotkeys` into the `BepInEx\plugins` folder in the Against the Storm main install folder. If this folder doesn't exist, run the game once with BepInEx installed to make it automatically.
+Dependencies:
+* **(Required)** [BepInEx](https://github.com/BepInEx). (Currently built againast [version 5.4.21](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.21))
+* _(Recommended)_ [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager). Supported by BepInEx for managing mod settings.
+* _(Recommended)_ [OptionsExtensions](https://github.com/ats-mods/OptionsExtensions). Adds game UI support for some StormUX settings.
 
-After running the game once with the mod installed, `BepInEx\config\ExtraHotkeys.cfg` can be modified to set the desired hotkeys.
+After running the game once with the mod installed,
+`BepInEx\config\ExtraHotkeys.cfg` can be modified to set the desired hotkeys.
+Much easier to have ConfigurationManager + OptionsExtensions!
+
+# Changelog
+
+## v1.0.0
+
+* Initial release, combining former WorkerHotkeys and ExtraHotkeys mods into one.

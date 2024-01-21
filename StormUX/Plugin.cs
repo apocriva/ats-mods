@@ -14,7 +14,7 @@ using OptEx = OptionsExtensions.Plugin;
 namespace StormUX;
 
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-[BepInDependency("OptionsExtensions", "0.0.1")]
+[BepInDependency("OptionsExtensions", BepInDependency.DependencyFlags.SoftDependency)]
 public class Plugin : BaseUnityPlugin
 {
     internal static Plugin Instance;

@@ -16,7 +16,7 @@
 
     <PropertyGroup>
         <BasePackageStagingPath>bin\staging</BasePackageStagingPath>
-        <PackageStagingPath>$(BasePackageStagingPath)\$(AssemblyName)</PackageStagingPath>
+        <PackageStagingPath>$(BasePackageStagingPath)\BepInEx\plugins\$(AssemblyName)</PackageStagingPath>
         <PackageZipPath>bin\deploy</PackageZipPath>
         <PackageZipFile>$(PackageZipPath)\$(AssemblyName)-$(Version).zip</PackageZipFile>
     </PropertyGroup>
