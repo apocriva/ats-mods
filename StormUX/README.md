@@ -1,4 +1,4 @@
-* Source: https://github.com/apocriva/ats-mods/StormUX
+* Source: https://github.com/apocriva/ats-mods/tree/main/StormUX
 * (Replicated at https://github.com/apocriva/StormUX for releases)
 
 # Against the Storm: StormUX
@@ -13,7 +13,7 @@ A mod for Against the Storm that adds a few user experience changes.
 Dependencies:
 * **(Required)** [BepInEx](https://github.com/BepInEx). (Currently built againast [version 5.4.21](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.21))
 * _(Recommended)_ [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager). Supported by BepInEx for managing mod settings.
-* _(Recommended)_ [OptionsExtensions](https://github.com/ats-mods/OptionsExtensions). Adds game UI support for some StormUX settings.
+* _(Recommended)_ [OptionsExtensions](https://github.com/apocriva/OptionsExtensions). Adds game UI support for some StormUX settings.
 
 After running the game once with the mod installed,
 `BepInEx\config\ExtraHotkeys.cfg` can be modified to set the desired hotkeys.
