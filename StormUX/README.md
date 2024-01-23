@@ -24,3 +24,4 @@ Much easier to have ConfigurationManager + OptionsExtensions!
 ## v1.0.0
 
 * Initial release, combining former WorkerHotkeys and ExtraHotkeys mods into one.
+* Added support for [OptionsExtensions](https://github.com/apocriva/OptionsExtensions).
