@@ -18,3 +18,11 @@ base game folder.
 # Development
 
 (Todo!)
+
+# Changelog
+
+## v1.0.0
+
+* Initial release.
+* Rudimentary functionality for extending the options popup.
+* Support to block input while [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager) is open.
