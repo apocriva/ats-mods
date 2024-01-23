@@ -92,7 +92,6 @@ public class Plugin : BaseUnityPlugin
 
     private static ConfigurationManager.ConfigurationManager _configurationManager;
 
-    private static GameObject _inputBlocker;
     private static OptionsPopup _optionsPopup;
     private static KeyBindingsPanel _keyBindingsPanel;
 
