@@ -1,4 +1,5 @@
-Source: https://github.com/ats-mods/StormUX
+* Source: https://github.com/apocriva/ats-mods/StormUX
+* (Replicated at https://github.com/apocriva/StormUX for releases)
 
 # Against the Storm: StormUX
 
