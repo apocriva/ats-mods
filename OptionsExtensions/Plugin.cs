@@ -253,7 +253,7 @@ public class Plugin : BaseUnityPlugin
         _harmony = Harmony.CreateAndPatchAll(typeof(Plugin));
         gameObject.hideFlags = HideFlags.HideAndDontSave;
 
-        if (Chainloader.PluginInfos.TryGetValue("com.bepis.bepinex.configurationmanager", out var info))
+        if (_configurationManager == null && Chainloader.PluginInfos.TryGetValue("com.bepis.bepinex.configurationmanager", out var info))
         {
             _configurationManager = info.Instance as ConfigurationManager.ConfigurationManager;
             _configurationManager!.DisplayingWindowChanged += OnConfigurationManagerWindowChanged;
@@ -272,6 +272,9 @@ public class Plugin : BaseUnityPlugin
     [HarmonyPrefix]
     private static void Initialize(OptionsPopup __instance)
     {
+        _modOptionsSection = null;
+        _modKeyBindingsSection = null;
+
         ClearControlRegistry();
         CollectPrefabs(__instance);
         _optionsSectionPrefab = __instance.transform.Find(__instance.VolumePath).gameObject;
@@ -280,11 +283,12 @@ public class Plugin : BaseUnityPlugin
         {
             CreateButton("Open Configuration Manager", () =>
             {
-                 _configurationManager.DisplayingWindow = true;
+                _configurationManager.DisplayingWindow = true;
             });
         }
 
         InitializeOtherPlugins();
+        
     }
 
     private static void InitializeOtherPlugins()
