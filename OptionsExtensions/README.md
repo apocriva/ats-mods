@@ -1,4 +1,5 @@
-Source: https://github.com/ats-mods/OptionsExtensions
+Source: https://github.com/apocriva/ats-mods/OptionsExtensions
+(Replicated at https://github.com/apocriva/OptionsExtensions for releases)
 
 # Against The Storm: Options Extensions
 
