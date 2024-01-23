@@ -19,8 +19,8 @@
         <PackageStagingPath>$(BasePackageStagingPath)\BepInEx\plugins\$(AssemblyName)</PackageStagingPath>
         <PackageZipPath>bin\deploy</PackageZipPath>
         <PackageZipFile>$(PackageZipPath)\$(AssemblyName)-$(Version).zip</PackageZipFile>
-        <PackageId>AgainstTheStorm.$(AssemblyName)</PackageId>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <PackageId>com.apocriva.ats-mods.$(AssemblyName)</PackageId>
     </PropertyGroup>
 
     <ItemDefinitionGroup>
